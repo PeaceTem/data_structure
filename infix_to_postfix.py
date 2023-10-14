@@ -65,7 +65,6 @@ class Infix:
     def convert_to_postfix(cls, infix_exp: str) -> str:
         postfix_exp = ""
         stack = Stack(); #try to use a normal stack
-        print("stack:", stack)
 
         for char in infix_exp:
             if char not in cls.operators.keys():
@@ -76,7 +75,8 @@ class Infix:
                     stack.push(char)
 
                 elif char == ")":
-                    while stack.peek != "(" and not stack.isEmpty():
+                    # pop the data of the stack until it reaches ( and pop ( too
+                    while stack.peek() != "(" and not stack.isEmpty():
                         postfix_exp += stack.pop()
                     if stack.peek() == "(":
                         stack.pop()
@@ -87,15 +87,47 @@ class Infix:
                         postfix_exp += stack.pop()
 
                 else:
-                    stack.push(char)
+                    # push operator to the stack if empty or the top is (
+                    if stack.isEmpty() or stack.peek() == "(":
+                        stack.push(char)
+                    
+                    # for left to right associativity
+                    elif cls.operators[stack.peek()][0] == LR:
+                        
+                        if cls.operators[stack.peek()][1] < cls.operators[char][1]:
+                            stack.push(char)
+
+                        elif cls.operators[stack.peek()][1] >= cls.operators[char][1]:
+                            while not stack.isEmpty() and cls.operators[stack.peek()][1] >= cls.operators[char][1]:
+                                postfix_exp += stack.pop()
+                            stack.push(char)
+
+                    # for left to right associativity
+                    elif cls.operators[stack.peek()][0] == RL:
+                        if cls.operators[stack.peek()][1] >= cls.operators[char][1]:
+                            stack.push(char)
+
+                        elif cls.operators[stack.peek()][1] < cls.operators[char][1]:
+                            while not stack.isEmpty() and cls.operators[stack.peek()][1] < cls.operators[char][1]:
+                                postfix_exp += stack.pop()
+                            stack.push(char)
+
+                    
+                    else:
+                        print("An error has occurred!")
+                        break
+
+
+            print(char, "|", stack, "|", postfix_exp)
         
 
         return postfix_exp
 
 
 
-print(Infix.convert_to_postfix("A+B;"))
-
+# print(Infix.convert_to_postfix("A+B;"))
+# print(Infix.convert_to_postfix("A*B-C;"))
+print(Infix.convert_to_postfix("K+L-M*N+(O^P)*W/U/V*T+Q;"))
                     
                         
 
